@@ -10,9 +10,7 @@ using var connection = await factory.CreateConnectionAsync();
 using var channel = await connection.CreateChannelAsync();
 
 
-var queueName=channel.QueueDeclareAsync().Result.QueueName;
-
-await channel.QueueBindAsync(queueName, "logs-fanout", "");
+var queueName = "direct-queue-Critical";
 
 await channel.BasicQosAsync(
     prefetchSize: 0,
