@@ -8,8 +8,12 @@ using var connection = await factory.CreateConnectionAsync();
 
 using var channel = await connection.CreateChannelAsync();
 
-var queueName = "hello-queue";
-await channel.QueueDeclareAsync(queueName, durable: true, exclusive: false, autoDelete: false);
+await channel.ExchangeDeclareAsync(
+    exchange: "logs-fanout",
+    type: ExchangeType.Fanout,
+    durable: true,
+    autoDelete: false
+);
 
 Enumerable.Range(1, 50).ToList().ForEach(async i =>
 {
@@ -17,8 +21,8 @@ Enumerable.Range(1, 50).ToList().ForEach(async i =>
     var body = System.Text.Encoding.UTF8.GetBytes(message);
 
     await channel.BasicPublishAsync(
-    exchange: string.Empty,
-    routingKey: queueName,
+    exchange: "logs-fanout",
+    routingKey: "",
     mandatory: false,
     body: body);
     Console.WriteLine($" [x] Sent {message}");

@@ -9,16 +9,23 @@ using var connection = await factory.CreateConnectionAsync();
 
 using var channel = await connection.CreateChannelAsync();
 
+
+var queueName=channel.QueueDeclareAsync().Result.QueueName;
+
+await channel.QueueBindAsync(queueName, "logs-fanout", "");
+
 await channel.BasicQosAsync(
     prefetchSize: 0,
     prefetchCount: 1,
     global: false
 );
 
-var queueName = "hello-queue";
-//await channel.QueueDeclareAsync(queueName, durable: true, exclusive: false, autoDelete: false);
-
 var consumer=new AsyncEventingBasicConsumer(channel);
+await channel.BasicConsumeAsync(
+    queue: queueName,
+    autoAck: false,
+    consumer: consumer
+);
 
 consumer.ReceivedAsync += async (model, ea) =>
 {
@@ -32,12 +39,6 @@ consumer.ReceivedAsync += async (model, ea) =>
     );
     await Task.CompletedTask;
 };
-
-await channel.BasicConsumeAsync(
-    queue: queueName,
-    autoAck: false,
-    consumer: consumer
-);
 Console.WriteLine(" Press [enter] to exit.");
 Console.ReadLine();
 
